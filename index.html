@@ -6,44 +6,37 @@
     <title>VALERIAN | Prospect Interface</title>
     <style>
         :root {
-            --primary-bg: #1a1a2e;
-            --secondary-bg: #16213e;
-            --card-bg: #0f3460;
-            --text-color: #e94560;
-            --body-text: #dcdcdc;
-            --link-color: #53a8b6;
-            --success-color: #a3de83;
-            --warn-color: #f4a261;
-            --danger-color: #e76f51;
+            --primary-bg: #1a1a2e; --secondary-bg: #16213e; --card-bg: #0f3460;
+            --text-color: #e94560; --body-text: #dcdcdc; --link-color: #53a8b6;
+            --success-color: #a3de83; --warn-color: #f4a261; --danger-color: #e76f51;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: var(--primary-bg); color: var(--body-text); font-size: 16px; }
         .container { max-width: 800px; margin: 15px auto; padding: 0 15px; }
         .card { background-color: var(--card-bg); border-radius: 12px; margin-bottom: 20px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.4); border-left: 5px solid var(--text-color); }
         h1, h2, h3 { color: var(--text-color); margin-top: 0; border-bottom: 1px solid var(--secondary-bg); padding-bottom: 10px; }
-        h1 { font-size: 1.8em; text-align: center; }
-        h2 { font-size: 1.4em; }
-        p, li { line-height: 1.6; }
-        a { color: var(--link-color); text-decoration: none; }
+        h1 { font-size: 1.6em; text-align: center; }
+        h2 { font-size: 1.3em; }
+        p { line-height: 1.6; }
+        a { color: var(--link-color); text-decoration: none; word-break: break-all; }
         a:hover { text-decoration: underline; }
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .data-item { background-color: var(--secondary-bg); padding: 10px; border-radius: 6px; }
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+        .data-item { background-color: var(--secondary-bg); padding: 12px; border-radius: 6px; }
         .data-item strong { display: block; color: var(--text-color); font-size: 0.9em; margin-bottom: 5px; text-transform: uppercase; }
         .call-button-container { display: flex; flex-direction: column; gap: 15px; }
         .call-button { display: block; padding: 18px; background-color: var(--text-color); color: white; text-decoration: none; font-size: 1.5em; font-weight: bold; border-radius: 8px; text-align: center; transition: all 0.2s ease-in-out; }
         .call-button:hover { background-color: #ffffff; color: var(--text-color); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4); }
         .call-button .phone-meta { font-size: 0.6em; font-weight: normal; display: block; margin-top: 5px; opacity: 0.8; }
-        .link-button { display: inline-block; padding: 10px 15px; background: var(--link-color); color: white; border-radius: 5px; margin-top: 10px; }
-        #errorMessage { color: var(--danger-color); text-align: center; font-size: 1.2em; }
-        .distress-score { font-size: 2em; font-weight: bold; }
-        .score-90 { color: var(--danger-color); }
-        .score-70 { color: var(--warn-color); }
-        .score-50 { color: #f2e205; }
-        .score-low { color: var(--success-color); }
+        .link-button-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .link-button { display: inline-block; padding: 10px 15px; background: var(--link-color); color: white; border-radius: 5px; }
+        #errorMessage { color: var(--danger-color); text-align: center; font-size: 1.2em; padding: 20px; background: var(--secondary-bg); border-radius: 8px;}
+        .score { font-size: 2em; font-weight: bold; }
+        .score-90 { color: var(--danger-color); } .score-70 { color: var(--warn-color); }
+        .score-50 { color: #f2e205; } .score-low { color: var(--success-color); }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 id="title">Prospect Interface</h1>
+        <h1 id="title">Loading Prospect...</h1>
 
         <div class="card" id="contact-actions">
             <h2>Contact Actions</h2>
@@ -57,8 +50,8 @@
                 <div class="data-item"><strong>Owner Name (CBC)</strong><span id="confirmed_name"></span></div>
                 <div class="data-item"><strong>Is Distressed/Vacant?</strong><span id="is_distressed"></span></div>
                 <div class="data-item"><strong>Primary Visual Issue</strong><span id="primary_visual_issue"></span></div>
-                <div class="data-item"><strong>Distress Score</strong><span id="distress_score" class="distress-score"></span></div>
-                <div class="data-item"><strong>Wholesale Potential</strong><span id="wholesale_potential" class="distress-score"></span></div>
+                <div class="data-item"><strong>Distress Score</strong><span id="distress_score" class="score"></span></div>
+                <div class="data-item"><strong>Wholesale Potential</strong><span id="wholesale_potential" class="score"></span></div>
             </div>
             <h3>Reasoning</h3>
             <p><strong>Visual: </strong><span id="reasoning_visual"></span></p>
@@ -78,56 +71,70 @@
         
         <div class="card" id="reference-links">
             <h2>Reference Links</h2>
-            <a href="#" id="street_view_url" class="link-button" target="_blank">Street View</a>
-            <a href="#" id="cbc_detail_url" class="link-button" target="_blank">Owner Details (CBC)</a>
-            <a href="#" id="prop_add_cyber_url" class="link-button" target="_blank">Property Details (Cyber)</a>
+            <div class="link-button-container">
+                <a href="#" id="street_view_url" class="link-button" target="_blank">Street View</a>
+                <a href="#" id="cbc_detail_url" class="link-button" target="_blank">Owner Details (CBC)</a>
+                <a href="#" id="prop_add_cyber_url" class="link-button" target="_blank">Property Details (Cyber)</a>
+            </div>
         </div>
         
-        <p id="errorMessage"></p>
+        <p id="errorMessage" style="display: none;"></p>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Function to safely decode and retrieve a URL parameter
+            const getParam = (params, key) => {
+                const value = params.get(key);
+                return value ? decodeURIComponent(value) : 'N/A';
+            };
+
             try {
                 const params = new URLSearchParams(window.location.search);
-                const getParam = (key) => params.get(key) || 'N/A';
+                
+                // Check for essential parameter to determine if data is present
+                if (!params.has('full_address')) {
+                    document.getElementById('title').textContent = 'No Prospect Data Received';
+                    document.getElementById('errorMessage').textContent = 'Error: The required "full_address" parameter was not found in the URL. Please ensure the Google Sheets formula is correct and the cell is not empty.';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    // Hide all cards if there's no data
+                    document.querySelectorAll('.card').forEach(card => card.style.display = 'none');
+                    return; // Halt execution
+                }
 
-                // Populate Title and Key Info
-                document.getElementById('title').textContent = `Prospect: ${getParam('full_address')}`;
-                document.getElementById('owner_name').textContent = getParam('owner_name');
-                document.getElementById('confirmed_name').textContent = getParam('confirmed_name');
+                // Populate all text fields
+                document.getElementById('title').textContent = `Prospect: ${getParam(params, 'full_address')}`;
+                document.getElementById('owner_name').textContent = getParam(params, 'owner_name');
+                document.getElementById('confirmed_name').textContent = getParam(params, 'confirmed_name');
+                document.getElementById('is_distressed').textContent = getParam(params, 'is_distressed');
+                document.getElementById('primary_visual_issue').textContent = getParam(params, 'primary_visual_issue');
+                document.getElementById('reasoning_visual').textContent = getParam(params, 'reasoning_visual');
+                document.getElementById('reasoning_wholesale').textContent = getParam(params, 'reasoning_wholesale');
+                document.getElementById('full_address').textContent = getParam(params, 'full_address');
+                document.getElementById('sqft').textContent = getParam(params, 'sqft');
+                document.getElementById('lot_acres').textContent = getParam(params, 'lot_acres');
+                document.getElementById('lot_sqft').textContent = getParam(params, 'lot_sqft');
+                document.getElementById('year_built').textContent = getParam(params, 'year_built');
 
-                // Populate Strategic Overview
-                document.getElementById('is_distressed').textContent = getParam('is_distressed');
-                document.getElementById('primary_visual_issue').textContent = getParam('primary_visual_issue');
-                const distressScoreEl = document.getElementById('distress_score');
-                const wholesalePotentialEl = document.getElementById('wholesale_potential');
-                distressScoreEl.textContent = getParam('distress_score');
-                wholesalePotentialEl.textContent = getParam('wholesale_potential');
-                // Color coding scores
-                const applyScoreClass = (el, score) => {
+                // Populate Scores with color coding
+                const populateScore = (elementId, paramName) => {
+                    const el = document.getElementById(elementId);
+                    const score = parseInt(getParam(params, paramName), 10);
+                    el.textContent = isNaN(score) ? 'N/A' : score;
+                    if (isNaN(score)) return;
+                    el.className = 'score'; // Reset classes
                     if (score >= 90) el.classList.add('score-90');
                     else if (score >= 70) el.classList.add('score-70');
                     else if (score >= 50) el.classList.add('score-50');
                     else el.classList.add('score-low');
                 };
-                applyScoreClass(distressScoreEl, parseInt(getParam('distress_score')));
-                applyScoreClass(wholesalePotentialEl, parseInt(getParam('wholesale_potential')));
-                
-                document.getElementById('reasoning_visual').textContent = getParam('reasoning_visual');
-                document.getElementById('reasoning_wholesale').textContent = getParam('reasoning_wholesale');
-
-                // Populate Property Intel
-                document.getElementById('full_address').textContent = getParam('full_address');
-                document.getElementById('sqft').textContent = getParam('sqft');
-                document.getElementById('lot_acres').textContent = getParam('lot_acres');
-                document.getElementById('lot_sqft').textContent = getParam('lot_sqft');
-                document.getElementById('year_built').textContent = getParam('year_built');
+                populateScore('distress_score', 'distress_score');
+                populateScore('wholesale_potential', 'wholesale_potential');
 
                 // Populate Links
-                document.getElementById('street_view_url').href = params.get('street_view_url') || '#';
-                document.getElementById('cbc_detail_url').href = params.get('cbc_detail_url') || '#';
-                document.getElementById('prop_add_cyber_url').href = params.get('prop_add_cyber_url') || '#';
+                document.getElementById('street_view_url').href = getParam(params, 'street_view_url') || '#';
+                document.getElementById('cbc_detail_url').href = getParam(params, 'cbc_detail_url') || '#';
+                document.getElementById('prop_add_cyber_url').href = getParam(params, 'prop_add_cyber_url') || '#';
 
                 // Dynamically create call buttons
                 const callButtonsContainer = document.getElementById('callButtonsContainer');
@@ -136,8 +143,8 @@
                     const phone = params.get(`phone${i}`);
                     if (phone) {
                         phoneFound = true;
-                        const phoneType = getParam(`phone${i}_type`);
-                        const phoneCarrier = getParam(`phone${i}_carrier`);
+                        const phoneType = getParam(params, `phone${i}_type`);
+                        const phoneCarrier = getParam(params, `phone${i}_carrier`);
                         
                         const link = document.createElement('a');
                         link.href = `tel:${phone.replace(/\D/g, '')}`;
@@ -148,11 +155,12 @@
                 }
                 
                 if (!phoneFound) {
-                    callButtonsContainer.textContent = 'No phone numbers available for this prospect.';
+                    callButtonsContainer.innerHTML = '<p>No phone numbers were found for this prospect.</p>';
                 }
 
             } catch (error) {
                 document.getElementById('errorMessage').textContent = 'FATAL ERROR: Could not render prospect data. ' + error.message;
+                document.getElementById('errorMessage').style.display = 'block';
                 console.error('VALERIAN Interface Error:', error);
             }
         });
