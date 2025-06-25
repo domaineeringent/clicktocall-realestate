@@ -20,7 +20,7 @@
         a { color: var(--link-color); text-decoration: none; word-break: break-all; }
         a:hover { text-decoration: underline; }
         .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
-        .data-item { background-color: var(--secondary-bg); padding: 12px; border-radius: 6px; }
+        .data-item { background-color: var(--secondary-bg); padding: 12px; border-radius: 6px; min-height: 40px; }
         .data-item strong { display: block; color: var(--text-color); font-size: 0.9em; margin-bottom: 5px; text-transform: uppercase; }
         .data-item span { word-wrap: break-word; }
         .call-button-container { display: flex; flex-direction: column; gap: 15px; }
@@ -29,6 +29,7 @@
         .call-button .phone-meta { font-size: 0.6em; font-weight: normal; display: block; margin-top: 5px; opacity: 0.8; }
         .link-button-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
         .link-button { display: inline-block; padding: 10px 15px; background: var(--link-color); color: white; border-radius: 5px; }
+        .link-button.disabled { background: #555; cursor: not-allowed; }
         #errorMessage { color: var(--danger-color); text-align: center; font-size: 1.2em; padding: 20px; background: var(--secondary-bg); border-radius: 8px;}
         .score { font-size: 2em; font-weight: bold; }
         .score-90 { color: var(--danger-color); } .score-70 { color: var(--warn-color); }
@@ -38,39 +39,49 @@
 <body>
     <div class="container">
         <h1 id="title">Loading Prospect...</h1>
-        <div class="card" id="contact-actions"><h2>Contact Actions</h2><div id="callButtonsContainer" class="call-button-container"></div></div>
-        <div class="card" id="strategic-overview"><h2>Strategic Overview</h2><div class="data-grid"><div class="data-item"><strong>Owner Name (Deed)</strong><span id="owner_name"></span></div><div class="data-item"><strong>Owner Name (CBC)</strong><span id="confirmed_name"></span></div><div class="data-item"><strong>Is Distressed/Vacant?</strong><span id="is_distressed"></span></div><div class="data-item"><strong>Primary Visual Issue</strong><span id="primary_visual_issue"></span></div><div class="data-item"><strong>Distress Score</strong><span id="distress_score" class="score"></span></div><div class="data-item"><strong>Wholesale Potential</strong><span id="wholesale_potential" class="score"></span></div></div><h3>Reasoning</h3><p><strong>Visual: </strong><span id="reasoning_visual"></span></p><p><strong>Wholesale: </strong><span id="reasoning_wholesale"></span></p></div>
-        <div class="card" id="property-intel"><h2>Property Intelligence</h2><div class="data-grid"><div class="data-item"><strong>Full Address</strong><span id="full_address"></span></div><div class="data-item"><strong>Living Sq. Ft.</strong><span id="sqft"></span></div><div class="data-item"><strong>Lot (Acres)</strong><span id="lot_acres"></span></div><div class="data-item"><strong>Lot (Sq. Ft.)</strong><span id="lot_sqft"></span></div><div class="data-item"><strong>Year Built</strong><span id="year_built"></span></div></div></div>
-        <div class="card" id="reference-links"><h2>Reference Links</h2><div class="link-button-container"><a href="#" id="street_view_url" class="link-button" target="_blank">Street View</a><a href="#" id="cbc_detail_url" class="link-button" target="_blank">Owner Details (CBC)</a><a href="#" id="prop_add_cyber_url" class="link-button" target="_blank">Property Details (Cyber)</a></div></div>
+        <div class="card" id="main-content" style="display:none;">
+            <div id="contact-actions"><h2>Contact Actions</h2><div id="callButtonsContainer" class="call-button-container"></div></div><hr style="border-color: var(--secondary-bg); margin: 20px 0;">
+            <div id="strategic-overview"><h2>Strategic Overview</h2><div class="data-grid"><div class="data-item"><strong>Owner Name (Deed)</strong><span id="owner_name"></span></div><div class="data-item"><strong>Owner Name (CBC)</strong><span id="confirmed_name"></span></div><div class="data-item"><strong>Is Distressed/Vacant?</strong><span id="is_distressed"></span></div><div class="data-item"><strong>Primary Visual Issue</strong><span id="primary_visual_issue"></span></div><div class="data-item"><strong>Distress Score</strong><span id="distress_score" class="score"></span></div><div class="data-item"><strong>Wholesale Potential</strong><span id="wholesale_potential" class="score"></span></div></div><h3>Reasoning</h3><p><strong>Visual: </strong><span id="reasoning_visual"></span></p><p><strong>Wholesale: </strong><span id="reasoning_wholesale"></span></p></div><hr style="border-color: var(--secondary-bg); margin: 20px 0;">
+            <div id="property-intel"><h2>Property Intelligence</h2><div class="data-grid"><div class="data-item"><strong>Full Address</strong><span id="full_address"></span></div><div class="data-item"><strong>Living Sq. Ft.</strong><span id="sqft"></span></div><div class="data-item"><strong>Lot (Acres)</strong><span id="lot_acres"></span></div><div class="data-item"><strong>Lot (Sq. Ft.)</strong><span id="lot_sqft"></span></div><div class="data-item"><strong>Year Built</strong><span id="year_built"></span></div></div></div><hr style="border-color: var(--secondary-bg); margin: 20px 0;">
+            <div id="reference-links"><h2>Reference Links</h2><div class="link-button-container"><a id="street_view_url" class="link-button" target="_blank">Street View</a><a id="cbc_detail_url" class="link-button" target="_blank">Owner Details (CBC)</a><a id="prop_add_cyber_url" class="link-button" target="_blank">Property Details (Cyber)</a></div></div>
+        </div>
         <p id="errorMessage" style="display: none;"></p>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const getParam = (params, key) => params.get(key) || 'N/A';
+            const getParam = (params, key) => params.get(key) || null;
+            const setText = (id, text) => { document.getElementById(id).textContent = text || 'N/A'; };
+            const mainContent = document.getElementById('main-content');
+            const errorMessage = document.getElementById('errorMessage');
+
             try {
                 const params = new URLSearchParams(window.location.search);
-                if (!params.has('full_address') || getParam(params, 'full_address') === 'N/A') {
+                if (!getParam(params, 'full_address')) {
                     document.getElementById('title').textContent = 'No Prospect Data Received';
-                    document.getElementById('errorMessage').textContent = 'Error: The required "full_address" parameter was not found in the URL. Please ensure the Google Sheets formula is correct and the source cell is not empty.';
-                    document.getElementById('errorMessage').style.display = 'block';
-                    document.querySelectorAll('.card').forEach(card => card.style.display = 'none');
+                    errorMessage.textContent = 'CRITICAL ERROR: The required "full_address" parameter was not found in the URL. PURGE the formula from your sheet and use the newly provided version.';
+                    errorMessage.style.display = 'block';
                     return;
                 }
+                mainContent.style.display = 'block';
                 document.getElementById('title').textContent = `Prospect: ${getParam(params, 'full_address')}`;
-                document.getElementById('owner_name').textContent = getParam(params, 'owner_name');
-                document.getElementById('confirmed_name').textContent = getParam(params, 'confirmed_name');
-                document.getElementById('is_distressed').textContent = getParam(params, 'is_distressed');
-                document.getElementById('primary_visual_issue').textContent = getParam(params, 'primary_visual_issue');
-                document.getElementById('reasoning_visual').textContent = getParam(params, 'reasoning_visual');
-                document.getElementById('reasoning_wholesale').textContent = getParam(params, 'reasoning_wholesale');
-                document.getElementById('full_address').textContent = getParam(params, 'full_address');
-                document.getElementById('sqft').textContent = getParam(params, 'sqft');
-                document.getElementById('lot_acres').textContent = getParam(params, 'lot_acres');
-                document.getElementById('lot_sqft').textContent = getParam(params, 'lot_sqft');
-                document.getElementById('year_built').textContent = getParam(params, 'year_built');
+
+                setText('owner_name', getParam(params, 'owner_name'));
+                setText('confirmed_name', getParam(params, 'confirmed_name'));
+                setText('is_distressed', getParam(params, 'is_distressed'));
+                setText('primary_visual_issue', getParam(params, 'primary_visual_issue'));
+                setText('reasoning_visual', getParam(params, 'reasoning_visual'));
+                setText('reasoning_wholesale', getParam(params, 'reasoning_wholesale'));
+                setText('full_address', getParam(params, 'full_address'));
+                setText('sqft', getParam(params, 'sqft'));
+                setText('lot_acres', getParam(params, 'lot_acres'));
+                setText('lot_sqft', getParam(params, 'lot_sqft'));
+                setText('year_built', getParam(params, 'year_built'));
+
                 const populateScore = (elementId, paramName) => {
                     const el = document.getElementById(elementId);
-                    const score = parseInt(getParam(params, paramName), 10);
+                    const scoreVal = getParam(params, paramName);
+                    const score = parseInt(scoreVal, 10);
                     el.textContent = isNaN(score) ? 'N/A' : score;
                     if (isNaN(score)) return;
                     el.className = 'score';
@@ -78,28 +89,43 @@
                 };
                 populateScore('distress_score', 'distress_score');
                 populateScore('wholesale_potential', 'wholesale_potential');
-                document.getElementById('street_view_url').href = getParam(params, 'street_view_url') !== 'N/A' ? getParam(params, 'street_view_url') : '#';
-                document.getElementById('cbc_detail_url').href = getParam(params, 'cbc_detail_url') !== 'N/A' ? getParam(params, 'cbc_detail_url') : '#';
-                document.getElementById('prop_add_cyber_url').href = getParam(params, 'prop_add_cyber_url') !== 'N/A' ? getParam(params, 'prop_add_cyber_url') : '#';
+
+                const setupLink = (id, paramName) => {
+                    const el = document.getElementById(id);
+                    const url = getParam(params, paramName);
+                    if (url) {
+                        el.href = url;
+                    } else {
+                        el.classList.add('disabled');
+                        el.href = '#';
+                        el.onclick = (e) => e.preventDefault();
+                    }
+                };
+                setupLink('street_view_url', 'street_view_url');
+                setupLink('cbc_detail_url', 'cbc_detail_url');
+                setupLink('prop_add_cyber_url', 'prop_add_cyber_url');
+
                 const callButtonsContainer = document.getElementById('callButtonsContainer');
                 let phoneFound = false;
                 for (let i = 1; i <= 5; i++) {
-                    const phone = params.get(`phone${i}`);
-                    if (phone && phone !== 'N/A') {
+                    const phone = getParam(params, `phone${i}`);
+                    if (phone) {
                         phoneFound = true;
                         const phoneType = getParam(params, `phone${i}_type`);
                         const phoneCarrier = getParam(params, `phone${i}_carrier`);
                         const link = document.createElement('a');
                         link.href = `tel:${phone.replace(/\D/g, '')}`;
                         link.className = 'call-button';
-                        link.innerHTML = `${phone} <span class="phone-meta">${phoneType} • ${phoneCarrier}</span>`;
+                        link.innerHTML = `${phone} <span class="phone-meta">${phoneType || ''} • ${phoneCarrier || ''}</span>`;
                         callButtonsContainer.appendChild(link);
                     }
                 }
                 if (!phoneFound) { callButtonsContainer.innerHTML = '<p>No phone numbers were found for this prospect.</p>'; }
             } catch (error) {
-                document.getElementById('errorMessage').textContent = 'FATAL ERROR: Could not render prospect data. ' + error.message;
-                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('title').textContent = 'Interface Render Failure';
+                errorMessage.textContent = 'FATAL ERROR: Could not render prospect data. ' + error.message;
+                errorMessage.style.display = 'block';
+                mainContent.style.display = 'none';
                 console.error('VALERIAN Interface Error:', error);
             }
         });
